@@ -44,10 +44,10 @@ class GridWindow(Canvas):
 	def __init__(self, Master=None, **kw):
 		super().__init__(Master , kw)
 		self.bind('<Configure>', self.CreateGrid)
-		self.bind("<MouseWheel>",self.zoomer)
+		#self.bind("<MouseWheel>",self.zoomer)
 
-		self.bind("<ButtonPress-1>", self.move_start)
-		self.bind("<B1-Motion>", self.move_move)
+		#self.bind("<ButtonPress-1>", self.move_start)
+		#self.bind("<B1-Motion>", self.move_move)
 
 	def CreateGrid(self,event=None):
 		
