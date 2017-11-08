@@ -39,15 +39,20 @@ class MLabel(ttk.Label):
 ###########################################
 # Pixels count = 100
 # (HEIGHT * WIDTH) / 100 = (500 * 500)/ 100  = 250000/ 100 == 2500 pixles
+# Pixels Width is 10
+# Pixels Hight is 10
 ###########################################
 class GridWindow(Canvas):
 	def __init__(self, Master=None, **kw):
 		super().__init__(Master , kw)
-		self.bind('<Configure>', self.CreateGrid)
+		self.bind('<Configure>', self.CreateGrid )
 		#self.bind("<MouseWheel>",self.zoomer)
-
+		
 		#self.bind("<ButtonPress-1>", self.move_start)
+		self.bind("<ButtonPress-1>", self.SetPixelColour)
+		self.bind("<ButtonPress-3>", self.SetPixelColour)
 		#self.bind("<B1-Motion>", self.move_move)
+
 
 	def CreateGrid(self,event=None):
 		
@@ -61,6 +66,20 @@ class GridWindow(Canvas):
 		for i in range(0, h, 10):
 			self.create_line([(0, i), (w, i)],fill="#999999" , tag='grid_line')
 
+	def GetPositionFormIndex(self, Index):
+		pass
+
+	def GetBestPixelPosition(self, Xcor, Ycor):
+		if (Xcor % 10 != 0):
+			Xcor = Xcor - (Xcor % 10)
+		if (Ycor % 10 != 0):
+			Ycor = Ycor - (Ycor % 10)
+		return Xcor, Ycor
+	def SetPixelColour(self,event , Colour = "#FFFF00"):
+		x , y = self.GetBestPixelPosition(event.x , event.y)
+		self.create_rectangle(x,y,x + 10 ,y + 10 , fill=Colour) 
+		
+		
 	def zoomer(self,event):
 		if (event.delta > 0):
 			self.scale("all", event.x, event.y, 1.1, 1.1)
