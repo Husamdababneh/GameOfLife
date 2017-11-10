@@ -6,7 +6,7 @@ import tkinter
 from math import sin
 
 WIDTH, HEIGHT = 650 , 650
-
+DevidedBy = 10
 class Root(tkinter.Tk):
 	def __init__(self, Master = None, Title = "Untitled", Size= "100x100", 
 					Resizeable = False):
@@ -24,9 +24,9 @@ class Label(ttk.Label):
 class MLabel(ttk.Label):
 	def __init__(self, master=None, **kw):
 		super().__init__(master, **kw)
-		#self.bind('<1>', self.save_mouse_location)
-		#self.bind("<B1-Motion>", self.move)
-		#self.xa , self.ya = 0, 0
+		self.bind('<1>', self.save_mouse_location)
+		self.bind("<B1-Motion>", self.move)
+		self.xa , self.ya = 0, 0
 		self.pack()
 
 
@@ -46,28 +46,41 @@ class GridWindow(Canvas):
 	def __init__(self, Master=None, **kw):
 		super().__init__(Master , kw)
 		self.bind('<Configure>', self.CreateGrid )
-		#self.bind("<MouseWheel>",self.zoomer)
-		
+		self.bind("<MouseWheel>",self.zoomer)
 		#self.bind("<ButtonPress-1>", self.move_start)
-		self.bind("<ButtonPress-1>", self.SetPixelColour)
-		self.bind("<ButtonPress-3>", self.SetPixelColour)
-		#self.bind("<B1-Motion>", self.move_move)
+		self.bind("<ButtonPress-1>", lambda event: self.SetPixelColour(event,("#FFFFFF")))
+		self.bind("<ButtonPress-3>",  lambda event: self.SetPixelColour(event,("#00FFFF")))
+		
+	#	self.bind("<Motion>", self.out)
+		self.Pixels = {}
+		self.PixelsState = {}
+		self.pack()
+		self.label = MLabel(Master ,text="Game of life", justify="right")
 
+	def out(self,event = None):
+		x , y = event.x, event.y
+		string = ("(%s,%s)" % (x,y))
+		print(string)
 
 	def CreateGrid(self,event=None):
 		
 		w = self.winfo_width()# Get current width of canvas
 		h = self.winfo_height() # Get current height of canvas
-		#c.delete('grid_line')# Will only remove the grid_line
+		#self.delete('grid_line')# Will only remove the grid_line
 		
 		for i in range(0, w, 10):
-			self.create_line([(i, 0), (i, h)], fill="#999999" , tag='grid_line')
+			self.create_line([(i, 0), (i, h)], fill="#000000" , tag='grid_line')
 
 		for i in range(0, h, 10):
-			self.create_line([(0, i), (w, i)],fill="#999999" , tag='grid_line')
+			self.create_line([(0, i), (w, i)],fill="#000000" , tag='grid_line')
 
 	def GetPositionFormIndex(self, Index):
-		pass
+		x = Index % 65
+		y = (Index-x) // 65
+		return x , y
+
+	def GetIndexFormPosition(self, x , y):
+		return  x + y * 65
 
 	def GetBestPixelPosition(self, Xcor, Ycor):
 		if (Xcor % 10 != 0):
@@ -75,17 +88,34 @@ class GridWindow(Canvas):
 		if (Ycor % 10 != 0):
 			Ycor = Ycor - (Ycor % 10)
 		return Xcor, Ycor
+	def DeletePixelByIndexAndTag(self, index ,tag):
+		self.delete()
+		pass
+
 	def SetPixelColour(self,event , Colour = "#FFFF00"):
 		x , y = self.GetBestPixelPosition(event.x , event.y)
-		self.create_rectangle(x,y,x + 10 ,y + 10 , fill=Colour) 
+		index = self.GetIndexFormPosition(x//10 , y//10)
+		_tag = "Live"
+		if (index in self.PixelsState.keys()):
+			self.DeletePixelByIndex(index , self.PixelsState.get(index , "Dead"))
+			if (self.PixelsState.get(index) == "Live"):
+				_tag = "Dead"
+				Colour = "#7E7E7E"
+			else:
+				_tag = "Live"
+				Colour = "#FFFFFF"
 		
+		self.create_rectangle(x , y, x + 10 , y + 10 , fill=Colour, tag={index : _tag}) 
+		self.PixelsState[index] = _tag
+
+		data = [x , y , x+10 , y+10]
+		self.Pixels[index] = data
+
+		x1 , y1 = self.GetPositionFormIndex(index)
+		print(("Index[%s] : (%s,%s)" % (index ,x1 * 10 ,y1 * 10 )))
 		
 	def zoomer(self,event):
-		if (event.delta > 0):
-			self.scale("all", event.x, event.y, 1.1, 1.1)
-		elif (event.delta < 0):
-			self.scale("all", event.x, event.y, 0.9, 0.9)
-		self.configure(scrollregion = self.bbox("all"))
+		print(str(self.gettags('Live')))
 
 	def move_start(self, event):
 		self.scan_mark(event.x, event.y)
@@ -100,11 +130,9 @@ class MainFrame(ttk.Frame):
 		#self.Label1 = MLabel(self, text="Game of life", justify="center")
 
 		self.testCanvas = GridWindow(self, width=WIDTH , height=HEIGHT, bg="#7E7E7E")
-		self.testCanvas.pack()
+		
 
-		self.Pixels = []
-		self.x = 0
-		self.y = 0
+	
 
 
 
@@ -116,7 +144,7 @@ class GameFrame(ttk.Frame):
 		pass #TODO : 
 
 
-root = Root(None,"Game Of Life" , "650x650+75+75")
+root = Root(None,"Game Of Life" , "651x690+75+75")
 MainFrame1 = MainFrame(root)
 
 root.mainloop()
