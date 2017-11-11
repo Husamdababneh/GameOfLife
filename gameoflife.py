@@ -148,12 +148,6 @@ class MainFrame(ttk.Frame):
 		#self.Label1 = MLabel(self, text="Game of life", justify="center")
 
 		self.testCanvas = GridWindow(self, width=WIDTH , height=HEIGHT, bg="#7E7E7E")
-		
-
-	
-
-
-
 
 class GameFrame(ttk.Frame):
 	def __init__(self, Master = None):
