@@ -16,34 +16,7 @@ class Root(tkinter.Tk):
 		self.geometry(Size)
 		if (Resizeable == False):
 			self.resizable(0,0)
-
-class Label(ttk.Label):
-	def __init__(self, Master = None,**kw):
-		super().__init__(Master, **kw)
-		self.pack()
-
-class MLabel(ttk.Label):
-	def __init__(self, master=None, **kw):
-		super().__init__(master, **kw)
-		self.bind('<1>', self.save_mouse_location)
-		self.bind("<B1-Motion>", self.move)
-		self.xa , self.ya = 0, 0
-		self.pack()
-
-
-	def save_mouse_location(self,event):
-		self.xa, self.ya = event.x ,event.y
-
-	def move(self, event):
-		x1, y1 = self.winfo_x() + event.x - self.xa , self.winfo_y() + event.y - self.ya
-		self.place(x=x1 , y=y1 )
-###########################################
-# Pixels count = 100
-# (HEIGHT * WIDTH) / 100 = (500 * 500)/ 100  = 250000/ 100 == 2500 pixles
-# Pixels Width is 10
-# Pixels Hight is 10
-###########################################
-
+			
 class MainFrame(ttk.Frame):
 	def __init__(self, Master = None):
 		super().__init__(Master)
