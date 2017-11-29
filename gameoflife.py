@@ -4,9 +4,9 @@ from tkinter import *
 from tkinter import ttk
 from tkinter.ttk import *
 
-from classes import GridWindow
+from classes import Grid
+from common import *
 
-from  common import *
 
 class Root(tkinter.Tk):
 	def __init__(self, Master = None, Title = "Untitled", Size= "100x100", 
@@ -23,10 +23,10 @@ class MainFrame(tkinter.Frame):
 		self.pack(expand = True, fill= "both")
 		#self.Label1 = MLabel(self, text="Game of life", justify="center")
 		
-		self.SimulationWindow = GridWindow(self, width=WIDTH +1 , height=HEIGHT+1,
-						highlightbackground ="#999999" , bg="#7E7E7E", bd=-2)#highlightbackground ="#999999"
-		#self.button = Button(self,text="Test" , command=self.SimulationWindow.pr)
-		#self.button.pack()
+		self.SimulationWindow = Grid(self, 10,width=WIDTH +1 , height=HEIGHT+1,
+							highlightbackground ="#999999" , bg="#7E7E7E")#highlightbackground ="#999999"
+		self.button = Button(self,text="Test" , command=self.SimulationWindow.TestGeneration)
+		self.button.pack()
 
 
 
