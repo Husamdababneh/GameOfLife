@@ -1,3 +1,0 @@
-WIDTH, HEIGHT = 650  , 650
-DevidedBy = 10
-WIDTH2 , HEIGHT2 = WIDTH//DevidedBy , HEIGHT//DevidedBy
