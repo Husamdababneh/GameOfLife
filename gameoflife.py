@@ -8,8 +8,6 @@ from tkinter import *
 from tkinter import Canvas, ttk
 from tkinter.ttk import *
 
-
-
 WIDTH, HEIGHT = 650  , 650
 DevidedBy = 10
 WIDTH2 , HEIGHT2 = WIDTH//DevidedBy , HEIGHT//DevidedBy
@@ -28,7 +26,7 @@ class MainFrame(tkinter.Frame):
 		self.pack(expand = True, fill= "both")
 		#self.Label1 = MLabel(self, text="Game of life", justify="center")
 		
-		self.SimulationWindow = Grid(self, 10,width=WIDTH +1 , height=HEIGHT+1,
+		self.SimulationWindow = GameOfLife(self, 10,width=WIDTH +1 , height=HEIGHT+1,
 							highlightbackground ="#999999" , bg="#7E7E7E")#highlightbackground ="#999999"
 		self.button = Button(self,text="Test" , command=self.genatare)#command=self.SimulationWindow.TestGeneration)
 		self.button.pack(side= "left")
@@ -45,7 +43,6 @@ class MainFrame(tkinter.Frame):
 class Grid(Canvas):
 	def __init__(self, Master = None , CellSize = 10 , **kw):
 		super().__init__(Master, **kw)
-		self.bind("<1>", self.SetPixelColour)
 		self.pack(expand=True)
 		self.update()
 
@@ -59,14 +56,6 @@ class Grid(Canvas):
 		self.width = self.winfo_width() - (self.bd * 2)
 		self.height = self.winfo_height() - (self.bd * 2)
 		########################
-		self.AliveCells = {} # {index : id}
-		self.Cells = [] 
-		self.Create_Grid(CellSize)
-		self.randomcells()
-
-	def randomcells(self):
-		for x in range(4000):
-			self.testcreator(random.randint(0 , self.CellCount ))
 
 	def GetBestPixelPosition(self, Xcor, Ycor):
 		Xcor = Xcor - (Xcor % self.CellSize) 
@@ -102,7 +91,20 @@ class Grid(Canvas):
 
 		print("{}...{}...{}".format(n_width,n_height, bd))
 	
-	def SetPixelColour(self ,event , Colour = "#FFFF00" , size = 10):
+
+class GameOfLife(Grid):
+	def __init__(self, Master = None , CellSize = 10 , **kw):
+		super().__init__(Master, **kw)
+		self.bind("<1>", self.CreateCell)
+		self.AliveCells = {} # {index : id}
+		self.Cells = [] 
+		self.Create_Grid(CellSize)
+		#self.randomcells()
+
+	def randomcells(self):
+		for x in range(4000):
+			self.testcreator(random.randint(0 , self.CellCount ))
+	def CreateCell(self ,event , Colour = "#FFFF00" , size = 10):
 		#print("--------------" + str(type(event)))
 		x , y = self.GetBestPixelPosition(event.x -2 , event.y-2)
 		bd = self.bd 
@@ -115,12 +117,12 @@ class Grid(Canvas):
 		id = self.create_rectangle(bbox, fill=Colour, outline = "#999999" , tag="Live",width = 0) 
 		self.AliveCells[index] = id
 
-	def testcreator(self, index):
+	def ReviveCell(self, index):
 		event = tkinter.Event()
 		event.x ,event.y = self.GetPositionFormIndex(index)
 		event.x += 2 
 		event.y +=2
-		self.SetPixelColour(event)
+		self.CreateCell(event)
 
 	def GetNeighboursCount(self,  index):
 		neighbours = [ index - self.widthCells - 1 , index - self.widthCells , index - self.widthCells +1,
@@ -160,14 +162,15 @@ class Grid(Canvas):
 			del self.AliveCells[index]
 
 		for index in to_create:
-			self.testcreator(index)
+			self.ReviveCell(index)
 		return
+	
 	def ClearAll(self):
 		for index in range(0, self.CellCount,1):
 			if (index in self.AliveCells.keys()) :
 				self.delete(self.AliveCells[index])
 				del self.AliveCells[index]
-			
+
 class MLabel(ttk.Label):
 	def __init__(self, master=None, **kw):
 		super().__init__(master, **kw)
