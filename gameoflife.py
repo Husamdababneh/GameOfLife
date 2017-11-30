@@ -31,12 +31,16 @@ class MainFrame(tkinter.Frame):
 		self.SimulationWindow = Grid(self, 10,width=WIDTH +1 , height=HEIGHT+1,
 							highlightbackground ="#999999" , bg="#7E7E7E")#highlightbackground ="#999999"
 		self.button = Button(self,text="Test" , command=self.genatare)#command=self.SimulationWindow.TestGeneration)
-		self.button.pack()
-		
+		self.button.pack(side= "left")
+
+		self.button = Button(self,text="Clear" , command=self.ClearTheWorld)#command=self.SimulationWindow.TestGeneration)
+		self.button.pack(side= "right")
+
 	def genatare(self):
 		self.SimulationWindow.TestGeneration()
 		
-
+	def ClearTheWorld(self):
+		self.SimulationWindow.ClearAll()
 		
 class Grid(Canvas):
 	def __init__(self, Master = None , CellSize = 10 , **kw):
@@ -58,7 +62,7 @@ class Grid(Canvas):
 		self.AliveCells = {} # {index : id}
 		self.Cells = [] 
 		self.Create_Grid(CellSize)
-		#self.randomcells()
+		self.randomcells()
 
 	def randomcells(self):
 		for x in range(4000):
@@ -158,7 +162,12 @@ class Grid(Canvas):
 		for index in to_create:
 			self.testcreator(index)
 		return
-
+	def ClearAll(self):
+		for index in range(0, self.CellCount,1):
+			if (index in self.AliveCells.keys()) :
+				self.delete(self.AliveCells[index])
+				del self.AliveCells[index]
+			
 class MLabel(ttk.Label):
 	def __init__(self, master=None, **kw):
 		super().__init__(master, **kw)
