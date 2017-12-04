@@ -45,18 +45,19 @@ class Grid(Canvas):
 		super().__init__(Master, **kw)
 		self.pack(expand=True)
 		self.update()
-
 		#################### 
 		#some important constants
 		self.CellSize = CellSize
+		self.CalculateConstants()
+		
+		########################
+	def CalculateConstants(self):
 		self.bd = int(self.cget("bd")) + 2 
 		self.CellCount = self.winfo_width() *  self.winfo_height() // (self.CellSize**2)
 		self.widthCells = int(math.sqrt(self.CellCount)) #assumming that the world id square 
 		print("CellCount {}".format(self.CellCount))		
 		self.width = self.winfo_width() - (self.bd * 2)
 		self.height = self.winfo_height() - (self.bd * 2)
-		########################
-
 	def GetBestPixelPosition(self, Xcor, Ycor):
 		Xcor = Xcor - (Xcor % self.CellSize) 
 		Ycor = Ycor - (Ycor % self.CellSize) 
@@ -79,6 +80,7 @@ class Grid(Canvas):
 				return (self.GetPositionFormIndex(index))
 	
 	def Create_Grid(self,CellSize):
+		self.CalculateConstants()
 		bd = self.bd
 		n_width = self.width 
 		n_height = self.height
@@ -94,18 +96,28 @@ class Grid(Canvas):
 
 class GameOfLife(Grid):
 	def __init__(self, Master = None , CellSize = 10 , **kw):
-		super().__init__(Master, **kw)
+		super().__init__(Master, CellSize ,**kw)
 		self.bind("<1>", self.CreateCell)
+		self.bind("<MouseWheel>", self.zoom)
 		self.AliveCells = {} # {index : id}
 		self.Cells = [] 
 		self.Create_Grid(CellSize)
-		#self.randomcells()
+		self.randomcells()
 
 	def randomcells(self):
 		for x in range(4000):
-			self.testcreator(random.randint(0 , self.CellCount ))
+			self.ReviveCell(random.randint(0 , self.CellCount ))
+	def FixCells(self):
+		#print(self.AliveCells.items())
+		for id , index in self.AliveCells.items():
+			#print(str(type(id)))
+			x , y = self.GetPositionFormIndex(index)
+			bbox = x + self.bd  + 1  , y + self.bd + 1 , x +  self.CellSize + self.bd   , y +  self.CellSize + self.bd 
+			self.itemconfig(id, bbox)
+		#randomcells()
 	def CreateCell(self ,event , Colour = "#FFFF00" , size = 10):
 		#print("--------------" + str(type(event)))
+		
 		x , y = self.GetBestPixelPosition(event.x -2 , event.y-2)
 		bd = self.bd 
 		bbox =  x + bd + 1  , y + bd + 1 , x +  self.CellSize + bd  , y +  self.CellSize + bd
@@ -170,7 +182,22 @@ class GameOfLife(Grid):
 			if (index in self.AliveCells.keys()) :
 				self.delete(self.AliveCells[index])
 				del self.AliveCells[index]
-
+	def zoom(self, event = None):
+		if event == None :
+			return
+		if event.delta > 0 : 
+			print("Zoom In")
+			self.delete("grid_line")
+			self.CellSize = 5
+			self.Create_Grid(5)
+			self.FixCells()
+		if event.delta < 0 :
+			print("Zoom out")
+			self.delete("grid_line")
+			self.CellSize = 10
+			self.Create_Grid(10)
+			self.FixCells()
+		
 class MLabel(ttk.Label):
 	def __init__(self, master=None, **kw):
 		super().__init__(master, **kw)
