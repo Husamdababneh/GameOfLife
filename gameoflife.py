@@ -19,24 +19,55 @@ class Root(tkinter.Tk):
 		self.geometry(Size)
 		if (Resizeable == False):
 			self.resizable(0,0)
-			
+
 class MainFrame(tkinter.Frame):
 	def __init__(self, Master = None, **kw):
 		super().__init__(Master, **kw)
 		self.pack(expand = True, fill= "both")
 		#self.Label1 = MLabel(self, text="Game of life", justify="center")
-		
+		self.life = 0 #0 stop ---- 1 start
 		self.SimulationWindow = GameOfLife(self, 10,width=WIDTH +1 , height=HEIGHT+1,
 							highlightbackground ="#999999" , bg="#7E7E7E")#highlightbackground ="#999999"
-		self.button = Button(self,text="Test" , command=self.genatare)#command=self.SimulationWindow.TestGeneration)
+		self.button = Button(self,text="Start" , command=self.Generate)#command=self.SimulationWindow.TestGeneration)
 		self.button.pack(side= "left")
 
-		self.button = Button(self,text="Clear" , command=self.ClearTheWorld)#command=self.SimulationWindow.TestGeneration)
-		self.button.pack(side= "right")
+		self.button1 = Button(self,text="Clear" , command=self.ClearTheWorld)#command=self.SimulationWindow.TestGeneration)
+		self.button1.pack(side= "right")
 
-	def genatare(self):
+		style = ttk.Style()
+		style.configure("TScale", background='#D3D3D3')
+
+		self.var = DoubleVar()
+		self.T = Scale(self, style="TScale" , variable= self.var)
+
+		#print(str(self.T.winfo_class()))
+		self.T.pack()
+
+		self.MS = 350
+
+	def Start(self):
+		print(str(int(self.var.get() * 1000 )))
 		self.SimulationWindow.TestGeneration()
+		if self.life == 1:
+			ms = int(self.MS - self.var.get()*1000)
+			print("MS = " + str(int(ms)))
+			if ms < 1:
+				ms = 1
+			self.loop = self.after(int(ms),self.Start)
+
+	def Stop(self):
+		self.life = 0
+		self.button.config(text = "Start")
 		
+	def Generate(self):
+		if self.life == 0:
+			self.life = 1
+			self.button.config(text = "Stop")
+			self.Start()
+		else :
+			self.Stop()
+			self.after_cancel(self.loop)
+
 	def ClearTheWorld(self):
 		self.SimulationWindow.ClearAll()
 		
@@ -98,7 +129,7 @@ class GameOfLife(Grid):
 	def __init__(self, Master = None , CellSize = 10 , **kw):
 		super().__init__(Master, CellSize ,**kw)
 		self.bind("<1>", self.CreateCell)
-		self.bind("<MouseWheel>", self.zoom)
+		#self.bind("<MouseWheel>", self.zoom)
 		self.AliveCells = {} # {index : id}
 		self.Cells = [] 
 		self.Create_Grid(CellSize)
@@ -113,7 +144,7 @@ class GameOfLife(Grid):
 			#print(str(type(id)))
 			x , y = self.GetPositionFormIndex(index)
 			bbox = x + self.bd  + 1  , y + self.bd + 1 , x +  self.CellSize + self.bd   , y +  self.CellSize + self.bd 
-			self.itemconfig(id, bbox)
+			self.coords(id, bbox)
 		#randomcells()
 	def CreateCell(self ,event , Colour = "#FFFF00" , size = 10):
 		#print("--------------" + str(type(event)))
@@ -197,7 +228,7 @@ class GameOfLife(Grid):
 			self.CellSize = 10
 			self.Create_Grid(10)
 			self.FixCells()
-		
+
 class MLabel(ttk.Label):
 	def __init__(self, master=None, **kw):
 		super().__init__(master, **kw)
