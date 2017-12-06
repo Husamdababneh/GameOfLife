@@ -9,8 +9,7 @@ from tkinter import Canvas, ttk
 from tkinter.ttk import *
 
 WIDTH, HEIGHT = 650  , 650
-DevidedBy = 10
-WIDTH2 , HEIGHT2 = WIDTH//DevidedBy , HEIGHT//DevidedBy
+
 class Root(tkinter.Tk):
 	def __init__(self, Master = None, Title = "Untitled", Size= "100x100", 
 					Resizeable = False, **kw):
@@ -26,7 +25,7 @@ class MainFrame(tkinter.Frame):
 		self.pack(expand = True, fill= "both")
 		#self.Label1 = MLabel(self, text="Game of life", justify="center")
 		self.life = 0 #0 stop ---- 1 start
-		self.SimulationWindow = GameOfLife(self, 10,width=WIDTH +1 , height=HEIGHT+1,
+		self.SimulationWindow = GameOfLife(self, 5,width=WIDTH +1 , height=HEIGHT+1,
 							highlightbackground ="#999999" , bg="#7E7E7E")#highlightbackground ="#999999"
 		self.button = Button(self,text="Start" , command=self.Generate)#command=self.SimulationWindow.TestGeneration)
 		self.button.pack(side= "left")
@@ -60,13 +59,20 @@ class MainFrame(tkinter.Frame):
 		self.button.config(text = "Start")
 		
 	def Generate(self):
+		if self.var.get() == 0: 
+			self.SimulationWindow.TestGeneration()
+			return
 		if self.life == 0:
 			self.life = 1
 			self.button.config(text = "Stop")
 			self.Start()
 		else :
 			self.Stop()
-			self.after_cancel(self.loop)
+			try :
+				self.after_cancel(self.loop)
+			except Exception as e:
+				pass
+
 
 	def ClearTheWorld(self):
 		self.SimulationWindow.ClearAll()
@@ -84,26 +90,30 @@ class Grid(Canvas):
 		########################
 	def CalculateConstants(self):
 		self.bd = int(self.cget("bd")) + 2 
-		self.CellCount = self.winfo_width() *  self.winfo_height() // (self.CellSize**2)
-		self.widthCells = int(math.sqrt(self.CellCount)) #assumming that the world id square 
-		print("CellCount {}".format(self.CellCount))		
 		self.width = self.winfo_width() - (self.bd * 2)
 		self.height = self.winfo_height() - (self.bd * 2)
+
+		self.CellCount = (self.width *  self.height) // (self.CellSize**2)
+		#print("CellCount {}".format(self.CellCount))		
+		self.widthCells = int(math.sqrt(self.CellCount)) #assumming that the world is square 
+		
+		#self.widthCells = self.width // self.CellSize  
+
 	def GetBestPixelPosition(self, Xcor, Ycor):
-		Xcor = Xcor - (Xcor % self.CellSize) 
-		Ycor = Ycor - (Ycor % self.CellSize) 
-		if Xcor >= self.width: Xcor = self.width - self.CellSize
-		if Ycor >= self.width: Ycor  = self.width - self.CellSize
+		X = Xcor - (Xcor % self.CellSize) 
+		Y = Ycor - (Ycor % self.CellSize) 
+		if X >= self.width: X = self.width - self.CellSize -1
+		if Y >= self.height: Y  = self.height - self.CellSize -1
 		#print("{}...{}".format(Xcor ,Ycor ))
-		return Xcor , Ycor 
+		return X , Y 
 
 	def GetPositionFormIndex(self, Index):
 		x = (Index % int(math.sqrt(self.CellCount)))
 		y = (Index-x) // (self.width // self.CellSize)
-		return x  * 10, y  * 10
+		return x  * self.CellSize, y  * self.CellSize
 
 	def GetIndexFormPosition(self, x , y):
-		return  x // 10 + (y//10 * (self.width // self.CellSize))
+		return  x // self.CellSize + (y//self.CellSize * (self.width // self.CellSize))
 	
 	def GetPositionFromId(self,Id):
 		for index , cellId in (self.AliveCells.items()):
@@ -148,7 +158,7 @@ class GameOfLife(Grid):
 		#randomcells()
 	def CreateCell(self ,event , Colour = "#FFFF00" , size = 10):
 		#print("--------------" + str(type(event)))
-		
+		#self.CalculateConstants()
 		x , y = self.GetBestPixelPosition(event.x -2 , event.y-2)
 		bd = self.bd 
 		bbox =  x + bd + 1  , y + bd + 1 , x +  self.CellSize + bd  , y +  self.CellSize + bd
@@ -159,13 +169,27 @@ class GameOfLife(Grid):
 			return
 		id = self.create_rectangle(bbox, fill=Colour, outline = "#999999" , tag="Live",width = 0) 
 		self.AliveCells[index] = id
+		#count = self.HighlightNeighbours(index)
+		#print(str(count))
 
-	def ReviveCell(self, index):
+	def ReviveCell(self, index,Colour = "#FFFF00"):
 		event = tkinter.Event()
 		event.x ,event.y = self.GetPositionFormIndex(index)
 		event.x += 2 
 		event.y +=2
-		self.CreateCell(event)
+		self.CreateCell(event,Colour)
+
+	def HighlightNeighbours(self, index):
+		neighbours = [ index - self.widthCells - 1 , index - self.widthCells , index - self.widthCells +1,
+				index -1 , index + 1,
+				index + self.widthCells -1 , index + self.widthCells ,  index + self.widthCells +1
+			]
+		for neighbour in  neighbours:
+
+			x , y = self.GetPositionFormIndex(neighbour)
+			bd = self.bd
+			bbox =  x + bd + 1  , y + bd + 1 , x +  self.CellSize + bd  , y +  self.CellSize + bd
+			id = self.create_rectangle(bbox, fill="#FFFFFF", outline = "#999999" , tag="Live",width = 0) 
 
 	def GetNeighboursCount(self,  index):
 		neighbours = [ index - self.widthCells - 1 , index - self.widthCells , index - self.widthCells +1,
@@ -176,7 +200,6 @@ class GameOfLife(Grid):
 		for neighbour in  neighbours:
 			if  neighbour in self.AliveCells.keys():
 				count +=1
-		#print(count)
 		return count
 		
 #############################
@@ -206,6 +229,7 @@ class GameOfLife(Grid):
 
 		for index in to_create:
 			self.ReviveCell(index)
+		
 		return
 	
 	def ClearAll(self):
