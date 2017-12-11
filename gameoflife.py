@@ -23,35 +23,47 @@ class MainFrame(tkinter.Frame):
 	def __init__(self, Master = None, **kw):
 		super().__init__(Master, **kw)
 		self.pack(expand = True, fill= "both")
-		#self.Label1 = MLabel(self, text="Game of life", justify="center")
-		self.life = 0 #0 stop ---- 1 start
-		self.SimulationWindow = GameOfLife(self, 5,width=WIDTH +1 , height=HEIGHT+1,
-							highlightbackground ="#999999" , bg="#7E7E7E")#highlightbackground ="#999999"
-		self.button = Button(self,text="Start" , command=self.Generate)#command=self.SimulationWindow.TestGeneration)
-		self.button.pack(side= "left")
-
-		self.button1 = Button(self,text="Clear" , command=self.ClearTheWorld)#command=self.SimulationWindow.TestGeneration)
-		self.button1.pack(side= "right")
 
 		style = ttk.Style()
 		style.configure("TScale", background='#D3D3D3')
+		style.configure("TButton", background='#D3D3D3')
 
-		self.var = DoubleVar()
-		self.T = Scale(self, style="TScale" , variable= self.var)
 
-		#print(str(self.T.winfo_class()))
-		self.T.pack()
+		self.life = 0 #0 stop ---- 1 start
+		self.SimulationWindow = GameOfLife(self, 10,width=WIDTH +1 , height=HEIGHT+1,
+							highlightbackground ="#999999" , bg="#7E7E7E")
 
-		self.MS = 350
+#		buttonstyle = ttk.Style()
+#		buttonstyle.configure
+		self.button = Button(self,text="Start" ,command=self.Generate)#command=self.SimulationWindow.TestGeneration)
+		#self.button.grid()
+		self.button.pack(side= "left")
+
+		self.button1 = Button(self,text="Clear" , command=self.ClearTheWorld)
+		self.button1.pack(side = "left", padx= 5)
+
+		self.var = DoubleVar(self , 0)
+		self.Generations = IntVar(self , 0)
+	
+		self.T = ttk.Scale(self, style="TScale" ,from_ = 0  ,to= 1000, variable = self.var)
+		#,command=lambda value : self.var.set(int(float(value))))
+		self.T.pack(side = "left")
+
+		self.MS = 988
+		self.ScaleLabel = Label(self,textvariable=self.var, background='#D3D3D3')
+		self.ScaleLabel.pack(side= "left")
+
+		self.GenerationLabel = Label(self, textvariable= self.Generations,background='#D3D3D3')
+		self.GenerationLabel.pack(side= "right")
 
 	def Start(self):
-		print(str(int(self.var.get() * 1000 )))
+		print("Var = " + str(int(self.var.get())))
 		self.SimulationWindow.TestGeneration()
 		if self.life == 1:
-			ms = int(self.MS - self.var.get()*1000)
-			print("MS = " + str(int(ms)))
-			if ms < 1:
-				ms = 1
+			ms = abs(self.MS - self.var.get())
+			print("MS = " + str(ms))
+			if ms < 10:
+				ms = 10
 			self.loop = self.after(int(ms),self.Start)
 
 	def Stop(self):
@@ -59,9 +71,6 @@ class MainFrame(tkinter.Frame):
 		self.button.config(text = "Start")
 		
 	def Generate(self):
-		if self.var.get() == 0: 
-			self.SimulationWindow.TestGeneration()
-			return
 		if self.life == 0:
 			self.life = 1
 			self.button.config(text = "Stop")
@@ -80,7 +89,7 @@ class MainFrame(tkinter.Frame):
 class Grid(Canvas):
 	def __init__(self, Master = None , CellSize = 10 , **kw):
 		super().__init__(Master, **kw)
-		self.pack(expand=True)
+		self.pack(expand=True)		
 		self.update()
 		#################### 
 		#some important constants
@@ -138,6 +147,7 @@ class Grid(Canvas):
 class GameOfLife(Grid):
 	def __init__(self, Master = None , CellSize = 10 , **kw):
 		super().__init__(Master, CellSize ,**kw)
+		self.Master = Master
 		self.bind("<1>", self.CreateCell)
 		#self.bind("<MouseWheel>", self.zoom)
 		self.AliveCells = {} # {index : id}
@@ -229,7 +239,7 @@ class GameOfLife(Grid):
 
 		for index in to_create:
 			self.ReviveCell(index)
-		
+		self.Master.Generations.set(self.Master.Generations.get() + 1)
 		return
 	
 	def ClearAll(self):
@@ -270,7 +280,7 @@ class MLabel(ttk.Label):
 		self.place(x=x1 , y=y1 )
 
 
-root = Root(None,"Game Of Life" , "690x690+75+75", False)
+root = Root(None,"Game Of Life" , "700x700+75+75", False)
 Game = MainFrame(root, bg="#D3D3D3")
 
 root.mainloop()
