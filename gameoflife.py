@@ -1,5 +1,6 @@
 #Game Of life Made By Husam Dababneh
 import math
+import matplotlib.pyplot as plt
 import os
 import random
 import time
@@ -9,15 +10,17 @@ from tkinter import Canvas, ttk
 from tkinter.ttk import *
 
 WIDTH, HEIGHT = 650  , 650
+CellCounter = []
+GenCounter = []
 
 class Root(tkinter.Tk):
-	def __init__(self, Master = None, Title = "Untitled", Size= "100x100", 
-					Resizeable = False, **kw):
+	def __init__(self, Master = None, Title = "Untitled", Size= "100x100",	Resizeable = False, **kw):
 		super().__init__(Master, **kw)
 		self.title(Title)
 		self.geometry(Size)
 		if (Resizeable == False):
 			self.resizable(0,0)
+
 
 class MainFrame(tkinter.Frame):
 	def __init__(self, Master = None, **kw):
@@ -30,41 +33,63 @@ class MainFrame(tkinter.Frame):
 
 
 		self.life = 0 #0 stop ---- 1 start
-		self.SimulationWindow = GameOfLife(self, 10,width=WIDTH +1 , height=HEIGHT+1,
-							highlightbackground ="#999999" , bg="#7E7E7E")
+		self.SimulationWindow = GameOfLife(self, 10,width=WIDTH +1 , height=HEIGHT+1,highlightbackground ="#999999" , bg="#7E7E7E")
 
 #		buttonstyle = ttk.Style()
 #		buttonstyle.configure
-		self.button = Button(self,text="Start" ,command=self.Generate)#command=self.SimulationWindow.TestGeneration)
+		self.button = Button(self,text="Start" ,command=self.Generate)
 		#self.button.grid()
 		self.button.pack(side= "left")
 
 		self.button1 = Button(self,text="Clear" , command=self.ClearTheWorld)
 		self.button1.pack(side = "left", padx= 5)
 
-		self.var = DoubleVar(self , 0)
+		self.plotButton = Button(self, text="Plot Result", command = self.PlotTheResult)
+		self.plotButton.pack(side = "right")
+
+		self.var = IntVar(self , 0)
 		self.Generations = IntVar(self , 0)
-	
-		self.T = ttk.Scale(self, style="TScale" ,from_ = 0  ,to= 1000, variable = self.var)
-		#,command=lambda value : self.var.set(int(float(value))))
+		self.Generations.trace('w',self.Update)
+		self.String = StringVar(self,"Gen = 0")
+		
+		self.T = ttk.Scale(self, style="TScale" ,from_ = 0  ,to= 1000#, variable = self.var)
+		,command=lambda value : self.var.set(int(float(value))))
 		self.T.pack(side = "left")
 
 		self.MS = 988
 		self.ScaleLabel = Label(self,textvariable=self.var, background='#D3D3D3')
-		self.ScaleLabel.pack(side= "left")
+		self.ScaleLabel.pack(side= "left",padx=20)
 
-		self.GenerationLabel = Label(self, textvariable= self.Generations,background='#D3D3D3')
-		self.GenerationLabel.pack(side= "right")
+		self.GenerationLabel = Label(self, textvariable= self.String,background='#D3D3D3')
+		self.GenerationLabel.pack(side= "left",)
+
+		
+		self.String2 = StringVar(self,"Count = " +str(self.SimulationWindow.GetCellCount()))
+		self.CountLabel = Label(self, textvariable=self.String2 ,background='#D3D3D3')
+		self.CountLabel.pack(side= "left" )
+		
+	def Update(self,*args):
+		global GenCounter , CellCounter
+		self.String.set("Gen ="+ str(self.Generations.get()))
+		self.String2.set("Count =" + str(self.SimulationWindow.GetCellCount()))
+		GenCounter.append(int(self.Generations.get()))
+		CellCounter.append(int(self.SimulationWindow.GetCellCount()))
+
+	def PlotTheResult(self):
+		plt.plot(CellCounter,GenCounter)
+		plt.xlabel('Generation')
+		plt.ylabel('Cell Count')
+		plt.show()
 
 	def Start(self):
-		print("Var = " + str(int(self.var.get())))
-		self.SimulationWindow.TestGeneration()
+		#print("Var = " + str(int(self.var.get())))
+		self.SimulationWindow.Generate()
 		if self.life == 1:
-			ms = abs(self.MS - self.var.get())
-			print("MS = " + str(ms))
+			ms = int(abs(self.MS - self.var.get()))
+			#print("MS = " + str(ms))
 			if ms < 10:
 				ms = 10
-			self.loop = self.after(int(ms),self.Start)
+			self.loop = self.after( ms ,self.Start)
 
 	def Stop(self):
 		self.life = 0
@@ -158,6 +183,8 @@ class GameOfLife(Grid):
 	def randomcells(self):
 		for x in range(4000):
 			self.ReviveCell(random.randint(0 , self.CellCount ))
+	def GetCellCount(self):
+		return len(self.AliveCells)
 	def FixCells(self):
 		#print(self.AliveCells.items())
 		for id , index in self.AliveCells.items():
@@ -219,7 +246,7 @@ class GameOfLife(Grid):
 # 3 Underpopulation: if a living cell is surrounded by fewer than two living cells, it dies.
 # 4 Reproduction: if a dead cell is surrounded by exactly three cells, it becomes a live cell.
 ##############################
-	def TestGeneration(self):
+	def Generate(self):
 		#os.system("cls")
 		to_delete = []
 		to_create = []
