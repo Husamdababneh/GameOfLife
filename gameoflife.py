@@ -34,19 +34,21 @@ class MainFrame(tkinter.Frame):
 
 		self.life = 0 #0 stop ---- 1 start
 		self.SimulationWindow = GameOfLife(self, 10,width=WIDTH +1 , height=HEIGHT+1,highlightbackground ="#999999" , bg="#7E7E7E")
-
-#		buttonstyle = ttk.Style()
-#		buttonstyle.configure
-		self.button = Button(self,text="Start" ,command=self.Generate)
-		#self.button.grid()
+		
+		## Buttons Start
+		self.button = Button(self,text="Next" ,command=self.Next)
 		self.button.pack(side= "left")
 
-		self.button1 = Button(self,text="Clear" , command=self.ClearTheWorld)
-		self.button1.pack(side = "left", padx= 5)
+		self.Startbutton = Button(self,text="Start" ,command=self.Generate)
+		self.Startbutton.pack(side= "left")
+
+		self.button2 = Button(self,text="Clear" , command=self.ClearTheWorld)
+		self.button2.pack(side = "left", padx= 5)
 
 		self.plotButton = Button(self, text="Plot Result", command = self.PlotTheResult)
 		self.plotButton.pack(side = "right")
 
+		## Buttons End
 		self.var = IntVar(self , 0)
 		self.Generations = IntVar(self , 0)
 		self.Generations.trace('w',self.Update)
@@ -91,17 +93,17 @@ class MainFrame(tkinter.Frame):
 				ms = 10
 			self.loop = self.after( ms ,self.Start)
 
-	def Stop(self):
-		self.life = 0
-		self.button.config(text = "Start")
-		
+	def Next(self):
+		self.SimulationWindow.Generate()
+
 	def Generate(self):
 		if self.life == 0:
 			self.life = 1
-			self.button.config(text = "Stop")
+			self.Startbutton.config(text = "Stop")
 			self.Start()
 		else :
-			self.Stop()
+			self.life = 0
+			self.Startbutton.config(text = "Start")
 			try :
 				self.after_cancel(self.loop)
 			except Exception as e:
